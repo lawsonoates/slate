@@ -4,31 +4,32 @@ import classNames from 'classnames';
 import type { HTMLAttributes, Ref } from 'react';
 import React, { forwardRef } from 'react';
 
-import styles from './ListElement.module.scss';
-
 interface Props extends HTMLAttributes<HTMLUListElement | HTMLOListElement> {
     element: ListNode;
 }
 
 export const ListElement = forwardRef<HTMLUListElement | HTMLOListElement, Props>(
     ({ children, className: customClassName, element, ...props }: Props, ref) => {
-        const className = classNames(customClassName, styles.ListElement, {
-            [styles.bulleted]: element.type === BULLETED_LIST_NODE_TYPE,
-            [styles.numbered]: element.type === NUMBERED_LIST_NODE_TYPE,
-            /*
-             * `inherit` is a fourth mode to inherit alignment from above.
-             * It is needed, as "inherit" presentation will have better (i.e. matching
-             * expectations) placement of the list bullets outside the text flow.
-             *
-             * Where for specified alignment it's treated as an override comparing
-             * to the document default alignment, and we have to put list bullets/numbers
-             * inside list items, which looks reasonable for centered and "opposite" alignments.
-             */
-            [styles.alignInherit]: element.align === undefined,
-            [styles.alignLeft]: element.align === Alignment.LEFT,
-            [styles.alignCenter]: element.align === Alignment.CENTER,
-            [styles.alignRight]: element.align === Alignment.RIGHT,
-        });
+        const className = classNames(
+            'pl-4 text-editor-text text-editor-paragraph leading-editor-paragraph',
+            {
+                'list-disc': element.type === BULLETED_LIST_NODE_TYPE,
+                'list-decimal': element.type === NUMBERED_LIST_NODE_TYPE,
+                // Inherit alignment
+                'text-inherit': element.align === undefined,
+                // Explicit alignments with list markers inside
+                'pl-0 pr-0 list-inside': element.align !== undefined,
+                'text-left': element.align === Alignment.LEFT,
+                'text-center': element.align === Alignment.CENTER,
+                'text-right': element.align === Alignment.RIGHT,
+            },
+            // Nested list styles
+            '[&_.list-decimal]:list-[lower-latin]',
+            '[&_.list-decimal_.list-decimal]:list-[lower-roman]',
+            '[&_.list-decimal_.list-decimal_.list-decimal]:list-decimal',
+            '[&>ul]:m-0 [&>ol]:m-0', // Remove margins from nested lists
+            customClassName,
+        );
 
         if (element.type === BULLETED_LIST_NODE_TYPE) {
             return (
